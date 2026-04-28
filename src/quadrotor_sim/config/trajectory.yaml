@@ -1,0 +1,48 @@
+# Waypoint trajectory for quadrotor testing.
+# Each waypoint has a target position [x, y, z] in meters and a hold_time in seconds.
+# The simulator's reference smoother (ref_max_vel) handles the smooth transition between waypoints.
+#
+# Usage:
+#   ros2 run quadrotor_sim trajectory_runner --ros-args -p trajectory_file:=<path/to/trajectory.yaml>
+#
+# Or with the launch argument:
+#   ros2 launch quadrotor_sim sim.launch.py trajectory:=config/trajectory.yaml
+
+# trajectory:
+#   # Phase 1: take off and hover at 1 m
+#   - position: [0.0, 0.0, 1.0]
+#     hold_time: 5.0
+
+#   # Phase 2: move to (1, 0, 1)
+#   - position: [1.0, 0.0, 1.0]
+#     hold_time: 5.0
+
+#   # Phase 3: move to (1, 1, 1)
+#   - position: [1.0, 1.0, 1.0]
+#     hold_time: 5.0
+
+#   # Phase 4: climb to (1, 1, 2)
+#   - position: [1.0, 1.0, 2.0]
+#     hold_time: 5.0
+
+#   # Phase 5: return to origin at altitude 1 m
+#   - position: [0.0, 0.0, 1.0]
+#     hold_time: 10.0
+
+trajectory:
+  # Phase 1: take off to 1 m and stabilize
+  - position: [0.0, 0.0, 1.0]
+    hold_time: 4.0
+
+  # Phase 2-5: fly a 1 m x 1 m square at z=1 m
+  - position: [1.0, 0.0, 1.0]
+    hold_time: 4.0
+
+  - position: [1.0, 1.0, 1.0]
+    hold_time: 4.0
+
+  - position: [0.0, 1.0, 1.0]
+    hold_time: 4.0
+
+  - position: [0.0, 0.0, 1.0]
+    hold_time: 6.0

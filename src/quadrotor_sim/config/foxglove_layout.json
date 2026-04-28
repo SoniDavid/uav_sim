@@ -1,0 +1,107 @@
+{
+  "configById": {
+    "3D!main": {
+      "cameraState": {
+        "distance": 5,
+        "perspective": true,
+        "phi": 50,
+        "target": [0, 0, 1],
+        "targetOffset": [0, 0, 0],
+        "targetOrientation": [0, 0, 0, 1],
+        "thetaOffset": -30,
+        "fovy": 45,
+        "near": 0.001,
+        "far": 5000
+      },
+      "followTf": "base_link",
+      "followMode": "follow-none",
+      "scene": {},
+      "transforms": {},
+      "topics": {
+        "/uav/pose": {"visible": true},
+        "/uav/reference": {"visible": true}
+      },
+      "layers": {},
+      "publish": {"type": "pose", "poseTopic": "/uav/cmd_pose"}
+    },
+    "Plot!position": {
+      "title": "Estado: Posición x, y, z",
+      "paths": [
+        {"value": "/uav/state.data[0]", "enabled": true, "timestampMethod": "receiveTime", "label": "x (m)", "showLine": true},
+        {"value": "/uav/state.data[1]", "enabled": true, "timestampMethod": "receiveTime", "label": "y (m)", "showLine": true},
+        {"value": "/uav/state.data[2]", "enabled": true, "timestampMethod": "receiveTime", "label": "z (m)", "showLine": true},
+        {"value": "/uav/reference.pose.position.x", "enabled": true, "timestampMethod": "receiveTime", "label": "x_ref", "showLine": true},
+        {"value": "/uav/reference.pose.position.y", "enabled": true, "timestampMethod": "receiveTime", "label": "y_ref", "showLine": true},
+        {"value": "/uav/reference.pose.position.z", "enabled": true, "timestampMethod": "receiveTime", "label": "z_ref", "showLine": true}
+      ],
+      "showLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "minYValue": "",
+      "maxYValue": ""
+    },
+    "Plot!euler": {
+      "title": "Estado: Ángulos de Euler — roll (φ), pitch (θ), yaw (ψ)",
+      "paths": [
+        {"value": "/uav/euler.vector.x", "enabled": true, "timestampMethod": "receiveTime", "label": "φ roll (rad)", "showLine": true},
+        {"value": "/uav/euler.vector.y", "enabled": true, "timestampMethod": "receiveTime", "label": "θ pitch (rad)", "showLine": true},
+        {"value": "/uav/euler.vector.z", "enabled": true, "timestampMethod": "receiveTime", "label": "ψ yaw (rad)", "showLine": true}
+      ],
+      "showLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "minYValue": "",
+      "maxYValue": ""
+    },
+    "Plot!motors": {
+      "title": "Controlador: u = {T1, T2, T3, T4} (N)",
+      "paths": [
+        {"value": "/uav/motors.data[0]", "enabled": true, "timestampMethod": "receiveTime", "label": "T1 (N)", "showLine": true},
+        {"value": "/uav/motors.data[1]", "enabled": true, "timestampMethod": "receiveTime", "label": "T2 (N)", "showLine": true},
+        {"value": "/uav/motors.data[2]", "enabled": true, "timestampMethod": "receiveTime", "label": "T3 (N)", "showLine": true},
+        {"value": "/uav/motors.data[3]", "enabled": true, "timestampMethod": "receiveTime", "label": "T4 (N)", "showLine": true}
+      ],
+      "showLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "minYValue": "",
+      "maxYValue": ""
+    },
+    "Plot!omega": {
+      "title": "Velocidades de motor: ω1, ω2, ω3, ω4 (rad/s)",
+      "paths": [
+        {"value": "/uav/motor_omega.data[0]", "enabled": true, "timestampMethod": "receiveTime", "label": "ω1 (rad/s)", "showLine": true},
+        {"value": "/uav/motor_omega.data[1]", "enabled": true, "timestampMethod": "receiveTime", "label": "ω2 (rad/s)", "showLine": true},
+        {"value": "/uav/motor_omega.data[2]", "enabled": true, "timestampMethod": "receiveTime", "label": "ω3 (rad/s)", "showLine": true},
+        {"value": "/uav/motor_omega.data[3]", "enabled": true, "timestampMethod": "receiveTime", "label": "ω4 (rad/s)", "showLine": true}
+      ],
+      "showLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "minYValue": "",
+      "maxYValue": ""
+    }
+  },
+  "globalVariables": {},
+  "layout": {
+    "first": {
+      "first": "3D!main",
+      "second": {
+        "first": "Plot!position",
+        "second": "Plot!euler",
+        "direction": "column",
+        "splitPercentage": 50
+      },
+      "direction": "row",
+      "splitPercentage": 32
+    },
+    "second": {
+      "first": "Plot!motors",
+      "second": "Plot!omega",
+      "direction": "row",
+      "splitPercentage": 50
+    },
+    "direction": "column",
+    "splitPercentage": 60
+  }
+}
