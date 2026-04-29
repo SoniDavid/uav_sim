@@ -11,7 +11,6 @@ def _optional_nodes(context, *args, **kwargs):
     pkg = get_package_share_directory('quadrotor_sim')
     nodes = []
 
-    # ── Robot model (URDF) for RViz — only if a file is provided ─────
     urdf_file = LaunchConfiguration('urdf_file').perform(context)
     if urdf_file:
         with open(urdf_file, 'r') as f:
@@ -24,12 +23,10 @@ def _optional_nodes(context, *args, **kwargs):
             parameters=[{'robot_description': robot_description}],
         ))
 
-    # ── Trajectory runner (optional) ─────────────────────────────────
     if LaunchConfiguration('use_trajectory').perform(context).lower() == 'true':
         traj_file = LaunchConfiguration('trajectory_file').perform(context)
         if not traj_file:
             traj_file = os.path.join(pkg, 'config', 'trajectory.yaml')
-
         nodes.append(Node(
             package='quadrotor_sim',
             executable='trajectory_runner',
@@ -49,15 +46,17 @@ def generate_launch_description():
     default_traj = os.path.join(pkg, 'config', 'trajectory.yaml')
 
     return LaunchDescription([
-        # ── Simulator parameters ──────────────────────────────────────
+        # ── Reference / trajectory parameters ────────────────────────
         DeclareLaunchArgument('ref_x',       default_value='0.0',  description='Initial target x (m)'),
         DeclareLaunchArgument('ref_y',       default_value='0.0',  description='Initial target y (m)'),
         DeclareLaunchArgument('ref_z',       default_value='1.0',  description='Initial target z (m)'),
         DeclareLaunchArgument('ref_max_vel', default_value='0.5',  description='Max reference velocity (m/s)'),
-        DeclareLaunchArgument('controller',  default_value='cascaded',
+
+        # ── Controller parameter ──────────────────────────────────────
+        DeclareLaunchArgument('controller', default_value='cascaded',
                              description="'cascaded'|'lqr'|'constrained_lqr'|'constrained_lqr_qp'|'gain_scheduled_lqr'"),
 
-        # ── Trajectory parameters ─────────────────────────────────────
+        # ── Optional trajectory runner ────────────────────────────────
         DeclareLaunchArgument('use_trajectory',  default_value='false',
                              description='Launch trajectory runner alongside simulator'),
         DeclareLaunchArgument('trajectory_file', default_value=default_traj,
@@ -65,24 +64,42 @@ def generate_launch_description():
         DeclareLaunchArgument('loop',            default_value='false',
                              description='Loop trajectory when complete'),
         DeclareLaunchArgument('urdf_file',       default_value='',
-                             description='Absolute path to drone URDF (enables robot_state_publisher for RViz)'),
+                             description='Absolute path to drone URDF (enables robot_state_publisher)'),
 
-        # ── Simulator node ────────────────────────────────────────────
+        # ── Reference node ────────────────────────────────────────────
         Node(
             package='quadrotor_sim',
-            executable='simulator',
-            name='quadrotor_simulator',
+            executable='reference_node',
+            name='quadrotor_reference',
             output='screen',
             parameters=[{
                 'ref_x':       LaunchConfiguration('ref_x'),
                 'ref_y':       LaunchConfiguration('ref_y'),
                 'ref_z':       LaunchConfiguration('ref_z'),
                 'ref_max_vel': LaunchConfiguration('ref_max_vel'),
-                'controller':  LaunchConfiguration('controller'),
             }],
         ),
 
-        # ── robot_state_publisher + optional trajectory runner ────────
+        # ── Controller node ───────────────────────────────────────────
+        Node(
+            package='quadrotor_sim',
+            executable='controller_node',
+            name='quadrotor_controller',
+            output='screen',
+            parameters=[{
+                'controller': LaunchConfiguration('controller'),
+            }],
+        ),
+
+        # ── Dynamics node ─────────────────────────────────────────────
+        Node(
+            package='quadrotor_sim',
+            executable='dynamics_node',
+            name='quadrotor_dynamics',
+            output='screen',
+        ),
+
+        # ── Optional: trajectory runner + robot_state_publisher ───────
         OpaqueFunction(function=_optional_nodes),
 
         # ── Foxglove bridge ───────────────────────────────────────────

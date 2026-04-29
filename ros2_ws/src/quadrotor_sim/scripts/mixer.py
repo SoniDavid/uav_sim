@@ -1,5 +1,5 @@
 import numpy as np
-from .params import KT, KQ, ARM, OMEGA_MAX
+from quadrotor_sim_scripts.params import KT, KQ, ARM, OMEGA_MAX
 
 # Mixer matrix: maps [ω1², ω2², ω3², ω4²] → [T, τ_φ, τ_θ, τ_ψ]
 # Motor layout (X-config, viewed from above):

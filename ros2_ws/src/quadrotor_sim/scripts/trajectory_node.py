@@ -1,20 +1,17 @@
+#!/usr/bin/env python3
 """
 Trajectory runner node — publishes waypoints to /uav/cmd_pose from a YAML file.
 
-The simulator's built-in reference smoother (ref_max_vel) handles the smooth
-transition between waypoints, so this node simply sends the next position target
-after the hold_time for the current waypoint has elapsed.
+The reference node's built-in ramp (ref_max_vel) handles smooth transitions
+between waypoints; this node simply advances to the next waypoint after
+hold_time seconds.
 
-Usage (after colcon build):
+Usage (after colcon build and source install/setup.bash):
     ros2 run quadrotor_sim trajectory_runner \\
         --ros-args -p trajectory_file:=/path/to/trajectory.yaml
 
-Or launch alongside the simulator:
-    ros2 launch quadrotor_sim sim.launch.py
-
-Then in a second terminal:
-    ros2 run quadrotor_sim trajectory_runner \\
-        --ros-args -p trajectory_file:=$(ros2 pkg prefix quadrotor_sim)/share/quadrotor_sim/config/trajectory.yaml
+Or via the launch file:
+    ros2 launch quadrotor_sim sim.launch.py use_trajectory:=true
 
 YAML format:
     trajectory:
@@ -34,7 +31,7 @@ class TrajectoryRunnerNode(Node):
         super().__init__('trajectory_runner')
 
         self.declare_parameter('trajectory_file', '')
-        self.declare_parameter('loop', False)      # repeat trajectory when done
+        self.declare_parameter('loop', False)
 
         traj_file = self.get_parameter('trajectory_file').value
         if not traj_file:
@@ -60,7 +57,7 @@ class TrajectoryRunnerNode(Node):
         self.wp_start_time = None
 
         self.pub = self.create_publisher(PoseStamped, '/uav/cmd_pose', 10)
-        self.timer = self.create_timer(0.1, self._tick)  # check every 100 ms
+        self.timer = self.create_timer(0.1, self._tick)
 
         self.get_logger().info(
             f'Loaded {len(self.waypoints)} waypoints from {traj_file}. '
@@ -113,3 +110,7 @@ def main(args=None):
         pass
     finally:
         rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()

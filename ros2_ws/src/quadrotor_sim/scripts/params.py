@@ -18,21 +18,16 @@ KT = 2.64e-8        # N/(rad/s)²  thrust coefficient
 KQ = 5.4e-9         # Nm/(rad/s)² torque coefficient
 
 # Motor first-order model
-TM        = 0.07    # s, motor time constant
+TM        = 0.01    # s, motor time constant (reduced from 0.07 for stability at 50 Hz control)
 KM        = 684.0   # rad/s per normalized input unit
 OMEGA_MAX = 2640.0  # rad/s, maximum rotor speed
 OMEGA_MIN = 0.0     # rad/s
 
 # Simulation timing
-DT_SIM           = 0.001               # s, RK4 integration step (1 kHz)
-DT_PUB           = 0.02                # s, ROS2 publish period (50 Hz)
+DT_SIM            = 0.001               # s, RK4 integration step (1 kHz)
+DT_PUB            = 0.02                # s, ROS2 publish period (50 Hz)
 SIM_STEPS_PER_PUB = int(DT_PUB / DT_SIM)  # 20 steps per publish
 
 # Hover equilibrium values
 T_HOVER     = MASS * G                        # 0.44145 N total thrust
 OMEGA_HOVER = np.sqrt(T_HOVER / (4.0 * KT))  # ~2044 rad/s per motor
-
-# Motor command representation: omega_des in [0, OMEGA_MAX] rad/s
-# Motor ODE: omega_dot = (omega_des - omega) / TM  (first-order filter)
-# This is equivalent to the PDF model (tm*omega_dot = km*u - omega)
-# with km=1 and u interpreted as desired omega in rad/s.

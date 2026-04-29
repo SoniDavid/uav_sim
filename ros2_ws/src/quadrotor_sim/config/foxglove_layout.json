@@ -19,7 +19,7 @@
       "transforms": {},
       "topics": {
         "/uav/pose": {"visible": true},
-        "/uav/reference": {"visible": true}
+        "/uav/reference/pose": {"visible": true}
       },
       "layers": {},
       "publish": {"type": "pose", "poseTopic": "/uav/cmd_pose"}
@@ -30,9 +30,9 @@
         {"value": "/uav/state.data[0]", "enabled": true, "timestampMethod": "receiveTime", "label": "x (m)", "showLine": true},
         {"value": "/uav/state.data[1]", "enabled": true, "timestampMethod": "receiveTime", "label": "y (m)", "showLine": true},
         {"value": "/uav/state.data[2]", "enabled": true, "timestampMethod": "receiveTime", "label": "z (m)", "showLine": true},
-        {"value": "/uav/reference.pose.position.x", "enabled": true, "timestampMethod": "receiveTime", "label": "x_ref", "showLine": true},
-        {"value": "/uav/reference.pose.position.y", "enabled": true, "timestampMethod": "receiveTime", "label": "y_ref", "showLine": true},
-        {"value": "/uav/reference.pose.position.z", "enabled": true, "timestampMethod": "receiveTime", "label": "z_ref", "showLine": true}
+        {"value": "/uav/reference/pose.pose.position.x", "enabled": true, "timestampMethod": "receiveTime", "label": "x_ref", "showLine": true},
+        {"value": "/uav/reference/pose.pose.position.y", "enabled": true, "timestampMethod": "receiveTime", "label": "y_ref", "showLine": true},
+        {"value": "/uav/reference/pose.pose.position.z", "enabled": true, "timestampMethod": "receiveTime", "label": "z_ref", "showLine": true}
       ],
       "showLegend": true,
       "isSynced": true,
@@ -80,6 +80,20 @@
       "xAxisVal": "timestamp",
       "minYValue": "",
       "maxYValue": ""
+    },
+    "Plot!control": {
+      "title": "Control: T (N), τ_φ, τ_θ, τ_ψ (N·m)",
+      "paths": [
+        {"value": "/uav/control.data[0]", "enabled": true, "timestampMethod": "receiveTime", "label": "T (N)", "showLine": true},
+        {"value": "/uav/control.data[1]", "enabled": true, "timestampMethod": "receiveTime", "label": "τ_φ (N·m)", "showLine": true},
+        {"value": "/uav/control.data[2]", "enabled": true, "timestampMethod": "receiveTime", "label": "τ_θ (N·m)", "showLine": true},
+        {"value": "/uav/control.data[3]", "enabled": true, "timestampMethod": "receiveTime", "label": "τ_ψ (N·m)", "showLine": true}
+      ],
+      "showLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "minYValue": "",
+      "maxYValue": ""
     }
   },
   "globalVariables": {},
@@ -96,10 +110,15 @@
       "splitPercentage": 32
     },
     "second": {
-      "first": "Plot!motors",
-      "second": "Plot!omega",
+      "first": {
+        "first": "Plot!motors",
+        "second": "Plot!omega",
+        "direction": "row",
+        "splitPercentage": 50
+      },
+      "second": "Plot!control",
       "direction": "row",
-      "splitPercentage": 50
+      "splitPercentage": 67
     },
     "direction": "column",
     "splitPercentage": 60

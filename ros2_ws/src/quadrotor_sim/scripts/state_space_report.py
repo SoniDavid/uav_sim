@@ -5,28 +5,23 @@ Prints the linearized A, B, C, D matrices with state labels, computes
 the LQR gain matrix K, verifies closed-loop stability, and generates a
 figure containing the state-space block diagram and the step response.
 
-Usage:
-    cd UAV_sim/src/quadrotor_sim
-    python3 -m quadrotor_sim.state_space_report
+Usage (from the ros2_ws directory after sourcing install/setup.bash):
+    python3 -m quadrotor_sim_scripts.state_space_report
 
 Output: /tmp/state_space_report.png
 """
-
-import sys, os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-from quadrotor_sim.params import (
+from quadrotor_sim_scripts.params import (
     MASS, G, IXX, IYY, IZZ, T_HOVER, KT, OMEGA_MAX, KQ, ARM, DT_SIM, OMEGA_HOVER
 )
-from quadrotor_sim.controller import build_hover_linear_model, design_lqr
-from quadrotor_sim.dynamics import rk4_step
-from quadrotor_sim.mixer import thrust_torques_to_omega_sq, omega_sq_to_omega_des
+from quadrotor_sim_scripts.controller import build_hover_linear_model, design_lqr
+from quadrotor_sim_scripts.dynamics import rk4_step
+from quadrotor_sim_scripts.mixer import thrust_torques_to_omega_sq, omega_sq_to_omega_des
 
-# ── State and input labels ───────────────────────────────────────────────────
 STATE_LABELS = [
     'x  (m)',    'y  (m)',    'z  (m)',
     'ẋ  (m/s)', 'ẏ  (m/s)', 'ż  (m/s)',
@@ -36,7 +31,6 @@ STATE_LABELS = [
 INPUT_LABELS = ['δT  (N)', 'τ_φ (N·m)', 'τ_θ (N·m)', 'τ_ψ (N·m)']
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 def print_matrix(name, M, row_labels=None, col_labels=None, fmt='+9.4f'):
     n, m = M.shape
     print(f"\n{'─'*60}")
@@ -52,7 +46,6 @@ def print_matrix(name, M, row_labels=None, col_labels=None, fmt='+9.4f'):
 
 
 def run():
-    # ── 1. Parameters ────────────────────────────────────────────────────────
     print("=" * 60)
     print("  QUADROTOR STATE-SPACE REPORT  —  IRS Tarea 3")
     print("=" * 60)
@@ -64,7 +57,6 @@ def run():
     T_MAX = 4 * KT * OMEGA_MAX**2
     print(f"  T_max   = {T_MAX:.4f} N")
 
-    # ── 2. State-space matrices ──────────────────────────────────────────────
     print("\n\n  Linearization point: hover  (φ=θ=ψ=0, T = mg)")
     print("  State:  x = [x y z  ẋ ẏ ż  φ θ ψ  φ̇ θ̇ ψ̇]ᵀ  (12×1)")
     print("  Input:  u = [δT  τ_φ  τ_θ  τ_ψ]ᵀ             (4×1)")
@@ -88,7 +80,6 @@ def run():
         print(f"    λ{i+1:02d} = {e.real:+8.4f} {'+' if e.imag>=0 else '-'} {abs(e.imag):.4f}j  {marker}")
     print("  → Open-loop system has poles at origin (marginally stable)")
 
-    # ── 3. LQR design ───────────────────────────────────────────────────────
     K, _, _, P = design_lqr()
     A_cl = A - B @ K
     eigs_cl = np.linalg.eigvals(A_cl)
@@ -119,7 +110,6 @@ def run():
     else:
         print("  → WARNING: closed-loop system is UNSTABLE!")
 
-    # ── 4. Step response simulation (z: 0 → 1 m) ────────────────────────────
     print("\n  Simulating step response: z: 0 m → 1 m ...")
     state = np.zeros(16)
     state[12:16] = OMEGA_HOVER
@@ -132,7 +122,7 @@ def run():
     phi_arr = np.zeros(n)
     T_arr = np.zeros(n)
 
-    from quadrotor_sim.controller import compute_cascaded_control
+    from quadrotor_sim_scripts.controller import compute_cascaded_control
     for i in range(n):
         T, tau_phi, tau_theta, tau_psi = compute_cascaded_control(state[:12], x_ref)
         omega_sq = thrust_torques_to_omega_sq(T, tau_phi, tau_theta, tau_psi)
@@ -142,19 +132,16 @@ def run():
         phi_arr[i] = state[6]
         T_arr[i] = T
 
-    # Settling time (within 2% of final)
     tol = 0.02
     settled = np.where(np.abs(z_arr - 1.0) <= tol)[0]
     t_settle = t_arr[settled[0]] if len(settled) else float('nan')
     print(f"    Settling time (2%): {t_settle:.2f} s")
     print(f"    Max |φ| during step: {np.degrees(np.abs(phi_arr).max()):.3f}°")
 
-    # ── 5. Figure ────────────────────────────────────────────────────────────
     _plot(A, B, K, eigs_cl, t_arr, z_arr, phi_arr, T_arr, t_settle)
 
 
 def _fmt_cell(v):
-    """Format a matrix cell value for annotation."""
     if abs(v) < 1e-10:
         return '0'
     if abs(v) >= 1000:
@@ -167,7 +154,6 @@ def _fmt_cell(v):
 
 
 def _matrix_heatmap(fig, gs_slot, M, row_labels, col_labels, title):
-    """Draw a matrix as a diverging heatmap with annotated values."""
     import matplotlib.colors as mcolors
 
     ax = fig.add_subplot(gs_slot)
@@ -181,7 +167,6 @@ def _matrix_heatmap(fig, gs_slot, M, row_labels, col_labels, title):
     else:
         vmax = nonzero.max()
         vmin_nz = nonzero.min()
-        # Use symlog if dynamic range > 100 so small and large values are both visible
         if vmax / vmin_nz > 100:
             norm = mcolors.SymLogNorm(linthresh=vmin_nz, vmin=-vmax, vmax=vmax)
         else:
@@ -189,13 +174,11 @@ def _matrix_heatmap(fig, gs_slot, M, row_labels, col_labels, title):
 
     im = ax.imshow(M, cmap='RdBu_r', norm=norm, aspect='auto')
 
-    # Annotate cells
     for r in range(nrows):
         for c in range(ncols):
             v = M[r, c]
             txt = _fmt_cell(v)
-            # Use normalized value to pick text color
-            norm_val = abs(norm(v) * 2 - 1)  # 0 at midpoint (white), 1 at extremes
+            norm_val = abs(norm(v) * 2 - 1)
             color = '#0d0d1a' if norm_val > 0.55 else 'white'
             fs = 6 if ncols > 6 else 7
             ax.text(c, r, txt, ha='center', va='center', fontsize=fs,
@@ -227,15 +210,11 @@ def _plot(A, B, K, eigs_cl, t, z, phi, T_thrust, t_settle):
                            left=0.06, right=0.97, top=0.94, bottom=0.07,
                            width_ratios=[3, 1])
 
-    # ── Panel A: A matrix (12×12) ────────────────────────────────────────────
     _matrix_heatmap(fig, gs[0, 0], A, short_states, short_states,
                     'Matriz A  (12×12) — sistema:  ẋ = Ax + Bu')
-
-    # ── Panel B: B matrix (12×4) ─────────────────────────────────────────────
     _matrix_heatmap(fig, gs[0, 1], B, short_states, short_inputs,
                     'Matriz B  (12×4) — entradas')
 
-    # ── Panel C: Step response z ─────────────────────────────────────────────
     ax1 = fig.add_subplot(gs[1, 0])
     ax1.set_facecolor('#0d0d1a')
     ax1.tick_params(colors='white'); ax1.spines[:].set_color('#555')
@@ -253,7 +232,6 @@ def _plot(A, B, K, eigs_cl, t, z, phi, T_thrust, t_settle):
     ax1.legend(fontsize=8, facecolor='#1a1a2e', labelcolor='white')
     ax1.grid(alpha=0.2, color='gray')
 
-    # ── Panel C: Closed-loop eigenvalues ─────────────────────────────────────
     ax2 = fig.add_subplot(gs[1, 1])
     ax2.set_facecolor('#0d0d1a')
     ax2.tick_params(colors='white'); ax2.spines[:].set_color('#555')

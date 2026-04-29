@@ -167,7 +167,7 @@ if all_stable
 end
 
 % Build ss object 
-sys_ol = ss(A, B, C, D);
+sys_ol = ss(A, B, C, D)
 sys_cl = ss(A_cl, B*0, C, D);   % autonomous closed-loop (no external input)
 
 fprintf('\n State-space objects created \n')

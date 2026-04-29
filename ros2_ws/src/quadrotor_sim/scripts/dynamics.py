@@ -14,7 +14,7 @@ Control input (4 elements):
 """
 
 import numpy as np
-from .params import MASS, G, IXX, IYY, IZZ, JR, KT, KQ, TM, ARM
+from quadrotor_sim_scripts.params import MASS, G, IXX, IYY, IZZ, JR, KT, KQ, TM, ARM
 
 
 def _kinematic_matrix_inv(phi, theta):
@@ -47,7 +47,7 @@ def state_derivative(state, u_cmd):
 
     Args:
         state:  np.ndarray (16,)
-        u_cmd:  np.ndarray (4,) normalized motor commands in [0, 1]
+        u_cmd:  np.ndarray (4,) desired motor speeds in rad/s
 
     Returns:
         ds: np.ndarray (16,) time derivative of state
@@ -58,12 +58,9 @@ def state_derivative(state, u_cmd):
     p, q, r             = state[9:12]
     omega               = state[12:16]
 
-    # Motor dynamics: omega_dot = (omega_des - omega) / TM  (first-order filter)
-    # u_cmd here is the desired omega in rad/s
     omega_dot = (u_cmd - omega) / TM
 
-    # Individual thrusts and torques
-    T_i = KT * omega**2   # shape (4,)
+    T_i = KT * omega**2
     Q_i = KQ * omega**2
 
     T_total   = np.sum(T_i)
@@ -71,24 +68,20 @@ def state_derivative(state, u_cmd):
     tau_theta = ARM * (T_i[0] + T_i[1] - T_i[2] - T_i[3])
     tau_psi   = -Q_i[0] + Q_i[1] - Q_i[2] + Q_i[3]
 
-    # Gyroscopic rotor term
     Omega_r = omega[0] - omega[1] + omega[2] - omega[3]
 
     sp, cp = np.sin(phi), np.cos(phi)
     st, ct = np.sin(theta), np.cos(theta)
     spsi, cpsi = np.sin(psi), np.cos(psi)
 
-    # Translational accelerations (inertial frame)
     acc_scale = T_total / MASS
     x_ddot = acc_scale * (cp * st * cpsi + sp * spsi)
     y_ddot = acc_scale * (cp * st * spsi - sp * cpsi)
     z_ddot = acc_scale * (cp * ct) - G
 
-    # Rotational dynamics (Euler angle rates from body angular velocities)
     J_inv = _kinematic_matrix_inv(phi, theta)
     euler_rates = J_inv @ np.array([p, q, r])
 
-    # Angular accelerations (body frame)
     phi_ddot   = ((IYY - IZZ) * q * r + JR * q * Omega_r + tau_phi)   / IXX
     theta_ddot = ((IZZ - IXX) * p * r - JR * p * Omega_r + tau_theta) / IYY
     psi_ddot   = ((IXX - IYY) * p * q                    + tau_psi)   / IZZ
