@@ -30,7 +30,6 @@
 #     hold_time: 10.0
 
 trajectory:
-  # Phase 1: take off to 1 m and stabilize
   - position: [0.0, 0.0, 1.0]
     hold_time: 4.0
 

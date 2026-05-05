@@ -1,6 +1,5 @@
 #include <array>
 #include <mutex>
-#include <string>
 #include <vector>
 
 #include "rclcpp/rclcpp.hpp"
@@ -11,13 +10,11 @@
 
 using namespace qsim;
 
-class QuadrotorControllerNode : public rclcpp::Node
+class NonlinearPDControllerNode : public rclcpp::Node
 {
 public:
-    QuadrotorControllerNode() : Node("quadrotor_controller"), state_received_(false), log_cycle_(0)
+    NonlinearPDControllerNode() : Node("nonlinear_pd_controller"), state_received_(false), log_cycle_(0)
     {
-        declare_parameter("controller", "cascaded");
-
         ref12_.fill(0.0);
         ref12_[2] = 1.0;  // default: hover at 1 m
         state12_.fill(0.0);
@@ -41,13 +38,11 @@ public:
                 state_received_ = true;
             });
 
-        // 50 Hz control timer — matches the original Python design
         timer_ = create_wall_timer(
             std::chrono::microseconds(static_cast<long>(DT_PUB * 1e6)),
-            std::bind(&QuadrotorControllerNode::tick, this));
+            std::bind(&NonlinearPDControllerNode::tick, this));
 
-        RCLCPP_INFO(get_logger(), "Quadrotor controller node started at %.0f Hz. controller=%s",
-                    1.0 / DT_PUB, get_parameter("controller").as_string().c_str());
+        RCLCPP_INFO(get_logger(), "Nonlinear PD controller node started at %.0f Hz.", 1.0 / DT_PUB);
     }
 
 private:
@@ -61,13 +56,7 @@ private:
             ref12   = ref12_;
         }
 
-        const auto ctrl_type = get_parameter("controller").as_string();
-        std::array<double, 4> u;
-        if (ctrl_type == "lqr") {
-            u = compute_lqr_control(state12.data(), ref12.data());
-        } else {
-            u = compute_cascaded_control(state12.data(), ref12.data());
-        }
+        const auto u = compute_cascaded_control(state12.data(), ref12.data());
 
         std_msgs::msg::Float64MultiArray msg;
         msg.data = {u[0], u[1], u[2], u[3]};
@@ -82,11 +71,9 @@ private:
             t_history_.clear();
             if (T_avg > T_MAX * 0.95) {
                 RCLCPP_WARN(get_logger(),
-                    "[%s] Thrust near saturation: avg=%.3f N (T_MAX=%.3f N)",
-                    ctrl_type.c_str(), T_avg, T_MAX);
+                    "[nonlinear_pd] Thrust near saturation: avg=%.3f N (T_MAX=%.3f N)", T_avg, T_MAX);
             } else {
-                RCLCPP_INFO(get_logger(), "[%s] Thrust avg=%.3f N",
-                            ctrl_type.c_str(), T_avg);
+                RCLCPP_INFO(get_logger(), "[nonlinear_pd] Thrust avg=%.3f N", T_avg);
             }
         }
     }
@@ -107,7 +94,7 @@ int main(int argc, char* argv[])
 {
     rclcpp::init(argc, argv);
     rclcpp::executors::MultiThreadedExecutor exec;
-    auto node = std::make_shared<QuadrotorControllerNode>();
+    auto node = std::make_shared<NonlinearPDControllerNode>();
     exec.add_node(node);
     exec.spin();
     rclcpp::shutdown();

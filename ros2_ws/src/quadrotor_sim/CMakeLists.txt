@@ -13,6 +13,7 @@ find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(rclpy REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 # ── Python library (quadrotor_sim_scripts) ────────────────────────────────────
 # Installs scripts/ directory as the "quadrotor_sim_scripts" Python package
@@ -33,23 +34,48 @@ install(FILES scripts/trajectory_node.py
               GROUP_READ GROUP_EXECUTE
               WORLD_READ WORLD_EXECUTE)
 
-# ── C++ dynamics node (1 kHz RK4 integration) ─────────────────────────────────
+# ── C++ dynamics node (1 kHz RK4 integration, simulation only) ────────────────
 add_executable(dynamics_node src/dynamics_node.cpp)
 target_include_directories(dynamics_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 target_compile_features(dynamics_node PUBLIC cxx_std_17)
-ament_target_dependencies(dynamics_node rclcpp std_msgs geometry_msgs tf2_ros)
+ament_target_dependencies(dynamics_node rclcpp std_msgs)
 
-# ── C++ controller node (event-driven, responds at 1 kHz) ────────────────────
-add_executable(controller_node src/controller_node.cpp)
-target_include_directories(controller_node PUBLIC
+# ── C++ kinematics node (50 Hz state post-processing, sim + real drone) ───────
+add_executable(kinematics_node src/kinematics_node.cpp)
+target_include_directories(kinematics_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-target_compile_features(controller_node PUBLIC cxx_std_17)
-ament_target_dependencies(controller_node rclcpp std_msgs)
+target_compile_features(kinematics_node PUBLIC cxx_std_17)
+ament_target_dependencies(kinematics_node rclcpp std_msgs geometry_msgs tf2_ros)
 
-install(TARGETS dynamics_node controller_node
+# ── C++ controller nodes (50 Hz) ─────────────────────────────────────────────
+add_executable(lqr_controller src/lqr_controller.cpp)
+target_include_directories(lqr_controller PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_features(lqr_controller PUBLIC cxx_std_17)
+ament_target_dependencies(lqr_controller rclcpp std_msgs)
+target_link_libraries(lqr_controller Eigen3::Eigen)
+
+add_executable(nonlinear_pd_controller src/nonlinear_pd_controller.cpp)
+target_include_directories(nonlinear_pd_controller PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_features(nonlinear_pd_controller PUBLIC cxx_std_17)
+ament_target_dependencies(nonlinear_pd_controller rclcpp std_msgs)
+target_link_libraries(nonlinear_pd_controller Eigen3::Eigen)
+
+add_executable(sf_controller src/sf_controller.cpp)
+target_include_directories(sf_controller PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_features(sf_controller PUBLIC cxx_std_17)
+ament_target_dependencies(sf_controller rclcpp std_msgs)
+target_link_libraries(sf_controller Eigen3::Eigen)
+
+install(TARGETS dynamics_node kinematics_node lqr_controller nonlinear_pd_controller sf_controller
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY include/
