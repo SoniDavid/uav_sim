@@ -11,35 +11,33 @@
 #include "tf2_ros/transform_broadcaster.h"
 #include "tf2_ros/static_transform_broadcaster.h"
 
-#include "quadrotor_sim/params.hpp"
-#include "quadrotor_sim/dynamics.hpp"
-#include "quadrotor_sim/allocation.hpp"
+#include "hexa_tilt_sim/params.hpp"
+#include "hexa_tilt_sim/dynamics.hpp"
+#include "hexa_tilt_sim/allocation.hpp"
 
-using namespace qsim;
+using namespace hTsim;
 
-// Subscribes to /uav/state (16D) and publishes derived geometric quantities.
-// On a real drone, replace dynamics_node with a sensor/EKF node that publishes
-// /uav/state in the same format — this node runs unchanged.
-class KinematicsNode : public rclcpp::Node
+// Subscribes to /hexa/state (18D) and publishes derived geometric quantities.
+class HexaKinematicsNode : public rclcpp::Node
 {
 public:
-    KinematicsNode() : Node("kinematics_node"), state_received_(false), tf_div_(0)
+    HexaKinematicsNode() : Node("hexa_kinematics"), state_received_(false), tf_div_(0)
     {
         state_.fill(0.0);
         path_msg_.header.frame_id = "world";
 
-        pub_pose_   = create_publisher<geometry_msgs::msg::PoseStamped>("/uav/pose",         10);
-        pub_euler_  = create_publisher<geometry_msgs::msg::Vector3Stamped>("/uav/euler",     10);
-        pub_motors_ = create_publisher<std_msgs::msg::Float64MultiArray>("/uav/motors",      10);
-        pub_omega_  = create_publisher<std_msgs::msg::Float64MultiArray>("/uav/motor_omega", 10);
-        pub_path_   = create_publisher<nav_msgs::msg::Path>("/uav/path",                     10);
+        pub_pose_   = create_publisher<geometry_msgs::msg::PoseStamped>("/hexa/pose",         10);
+        pub_euler_  = create_publisher<geometry_msgs::msg::Vector3Stamped>("/hexa/euler",     10);
+        pub_motors_ = create_publisher<std_msgs::msg::Float64MultiArray>("/hexa/motors",      10);
+        pub_omega_  = create_publisher<std_msgs::msg::Float64MultiArray>("/hexa/motor_omega", 10);
+        pub_path_   = create_publisher<nav_msgs::msg::Path>("/hexa/path",                     10);
 
         sub_state_ = create_subscription<std_msgs::msg::Float64MultiArray>(
-            "/uav/state", 10,
+            "/hexa/state", 10,
             [this](std_msgs::msg::Float64MultiArray::SharedPtr msg) {
-                if (msg->data.size() < 16) return;
+                if (msg->data.size() < 18) return;
                 std::lock_guard<std::mutex> lk(mutex_);
-                for (int i = 0; i < 16; ++i) state_[i] = msg->data[i];
+                for (int i = 0; i < 18; ++i) state_[i] = msg->data[i];
                 state_received_ = true;
             });
 
@@ -55,15 +53,15 @@ public:
 
         timer_ = create_wall_timer(
             std::chrono::microseconds(static_cast<long>(DT_PUB * 1e6)),
-            std::bind(&KinematicsNode::publish_viz, this));
+            std::bind(&HexaKinematicsNode::publish_viz, this));
 
-        RCLCPP_INFO(get_logger(), "Kinematics node started at %.0f Hz.", 1.0 / DT_PUB);
+        RCLCPP_INFO(get_logger(), "Hexa kinematics node started at %.0f Hz.", 1.0 / DT_PUB);
     }
 
 private:
     void publish_viz()
     {
-        std::array<double, 16> state;
+        std::array<double, 18> state;
         {
             std::lock_guard<std::mutex> lk(mutex_);
             if (!state_received_) return;
@@ -71,7 +69,9 @@ private:
         }
 
         const auto now = get_clock()->now();
-        const double phi = state[6], theta = state[7], psi = state[8];
+
+        // χ = state[0:6] = [x, y, z, φ, θ, ψ]
+        const double phi = state[3], theta = state[4], psi = state[5];
 
         double qx, qy, qz, qw;
         euler_to_quaternion(phi, theta, psi, qx, qy, qz, qw);
@@ -101,15 +101,16 @@ private:
         euler_msg.vector.z = psi;
         pub_euler_->publish(euler_msg);
 
-        double T, tau_phi, tau_theta, tau_psi, T_i[4];
-        compute_wrench(&state[12], T, tau_phi, tau_theta, tau_psi, T_i);
-
+        // Ω = state[12:18]; forward model → 6D wrench, then extract individual contributions
+        // Publish per-motor z-force as "thrust" (f_z_i = M_PHI[2][i] * Ω_i²)
         std_msgs::msg::Float64MultiArray motors_msg;
-        motors_msg.data = {T_i[0], T_i[1], T_i[2], T_i[3]};
+        motors_msg.data.resize(6);
+        for (int i = 0; i < 6; ++i)
+            motors_msg.data[i] = M_PHI[2][i] * state[12+i] * state[12+i];
         pub_motors_->publish(motors_msg);
 
         std_msgs::msg::Float64MultiArray omega_msg;
-        omega_msg.data = {state[12], state[13], state[14], state[15]};
+        omega_msg.data.assign(&state[12], &state[18]);
         pub_omega_->publish(omega_msg);
 
         // TF at 10 Hz (every 5th viz publish)
@@ -130,10 +131,10 @@ private:
         }
     }
 
-    std::array<double, 16> state_;
+    std::array<double, 18> state_;
     std::mutex mutex_;
     bool state_received_;
-    int tf_div_;
+    int  tf_div_;
 
     nav_msgs::msg::Path path_msg_;
 
@@ -152,7 +153,7 @@ int main(int argc, char* argv[])
 {
     rclcpp::init(argc, argv);
     rclcpp::executors::MultiThreadedExecutor exec;
-    auto node = std::make_shared<KinematicsNode>();
+    auto node = std::make_shared<HexaKinematicsNode>();
     exec.add_node(node);
     exec.spin();
     rclcpp::shutdown();

@@ -1,0 +1,160 @@
+{
+  "configById": {
+    "3D!main": {
+      "cameraState": {
+        "distance": 6,
+        "perspective": true,
+        "phi": 50,
+        "target": [0, 0, 1.2],
+        "targetOffset": [0, 0, 0],
+        "targetOrientation": [0, 0, 0, 1],
+        "thetaOffset": -30,
+        "fovy": 45,
+        "near": 0.001,
+        "far": 5000
+      },
+      "followTf": "base_link",
+      "followMode": "follow-none",
+      "scene": {},
+      "transforms": {},
+      "topics": {
+        "/hexa/pose": {"visible": true},
+        "/hexa/reference/pose": {"visible": true},
+        "/hexa/path": {"visible": true}
+      },
+      "layers": {
+        "urdf-hexa-tilt": {
+          "visible": true,
+          "layerId": "foxglove.Urdf",
+          "instanceId": "urdf-hexa-tilt"
+        }
+      },
+      "publish": {"type": "pose", "poseTopic": "/hexa/cmd_pose"}
+    },
+    "Plot!position": {
+      "title": "Estado: Posición x, y, z",
+      "paths": [
+        {"value": "/hexa/state.data[0]", "enabled": true, "timestampMethod": "receiveTime", "label": "x (m)", "showLine": true},
+        {"value": "/hexa/state.data[1]", "enabled": true, "timestampMethod": "receiveTime", "label": "y (m)", "showLine": true},
+        {"value": "/hexa/state.data[2]", "enabled": true, "timestampMethod": "receiveTime", "label": "z (m)", "showLine": true},
+        {"value": "/hexa/reference/pose.pose.position.x", "enabled": true, "timestampMethod": "receiveTime", "label": "x_ref", "showLine": true},
+        {"value": "/hexa/reference/pose.pose.position.y", "enabled": true, "timestampMethod": "receiveTime", "label": "y_ref", "showLine": true},
+        {"value": "/hexa/reference/pose.pose.position.z", "enabled": true, "timestampMethod": "receiveTime", "label": "z_ref", "showLine": true}
+      ],
+      "showLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "minYValue": "",
+      "maxYValue": ""
+    },
+    "Plot!euler": {
+      "title": "Estado: Ángulos de Euler — roll (φ), pitch (θ), yaw (ψ)",
+      "paths": [
+        {"value": "/hexa/euler.vector.x", "enabled": true, "timestampMethod": "receiveTime", "label": "φ roll (rad)", "showLine": true},
+        {"value": "/hexa/euler.vector.y", "enabled": true, "timestampMethod": "receiveTime", "label": "θ pitch (rad)", "showLine": true},
+        {"value": "/hexa/euler.vector.z", "enabled": true, "timestampMethod": "receiveTime", "label": "ψ yaw (rad)", "showLine": true}
+      ],
+      "showLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "minYValue": "",
+      "maxYValue": ""
+    },
+    "Plot!motors": {
+      "title": "Controlador: Empuje por motor T1..T6 (N)",
+      "paths": [
+        {"value": "/hexa/motors.data[0]", "enabled": true, "timestampMethod": "receiveTime", "label": "T1 (N)", "showLine": true},
+        {"value": "/hexa/motors.data[1]", "enabled": true, "timestampMethod": "receiveTime", "label": "T2 (N)", "showLine": true},
+        {"value": "/hexa/motors.data[2]", "enabled": true, "timestampMethod": "receiveTime", "label": "T3 (N)", "showLine": true},
+        {"value": "/hexa/motors.data[3]", "enabled": true, "timestampMethod": "receiveTime", "label": "T4 (N)", "showLine": true},
+        {"value": "/hexa/motors.data[4]", "enabled": true, "timestampMethod": "receiveTime", "label": "T5 (N)", "showLine": true},
+        {"value": "/hexa/motors.data[5]", "enabled": true, "timestampMethod": "receiveTime", "label": "T6 (N)", "showLine": true}
+      ],
+      "showLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "minYValue": "",
+      "maxYValue": ""
+    },
+    "Plot!omega": {
+      "title": "Velocidades de motor: Ω1..Ω6 (rad/s)",
+      "paths": [
+        {"value": "/hexa/motor_omega.data[0]", "enabled": true, "timestampMethod": "receiveTime", "label": "Ω1 (rad/s)", "showLine": true},
+        {"value": "/hexa/motor_omega.data[1]", "enabled": true, "timestampMethod": "receiveTime", "label": "Ω2 (rad/s)", "showLine": true},
+        {"value": "/hexa/motor_omega.data[2]", "enabled": true, "timestampMethod": "receiveTime", "label": "Ω3 (rad/s)", "showLine": true},
+        {"value": "/hexa/motor_omega.data[3]", "enabled": true, "timestampMethod": "receiveTime", "label": "Ω4 (rad/s)", "showLine": true},
+        {"value": "/hexa/motor_omega.data[4]", "enabled": true, "timestampMethod": "receiveTime", "label": "Ω5 (rad/s)", "showLine": true},
+        {"value": "/hexa/motor_omega.data[5]", "enabled": true, "timestampMethod": "receiveTime", "label": "Ω6 (rad/s)", "showLine": true}
+      ],
+      "showLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "minYValue": "",
+      "maxYValue": ""
+    },
+    "Plot!control": {
+      "title": "Control: fx, fy, fz (N) — τ_φ, τ_θ, τ_ψ (N·m)",
+      "paths": [
+        {"value": "/hexa/control.data[0]", "enabled": true, "timestampMethod": "receiveTime", "label": "fx (N)", "showLine": true},
+        {"value": "/hexa/control.data[1]", "enabled": true, "timestampMethod": "receiveTime", "label": "fy (N)", "showLine": true},
+        {"value": "/hexa/control.data[2]", "enabled": true, "timestampMethod": "receiveTime", "label": "fz (N)", "showLine": true},
+        {"value": "/hexa/control.data[3]", "enabled": true, "timestampMethod": "receiveTime", "label": "τ_φ (N·m)", "showLine": true},
+        {"value": "/hexa/control.data[4]", "enabled": true, "timestampMethod": "receiveTime", "label": "τ_θ (N·m)", "showLine": true},
+        {"value": "/hexa/control.data[5]", "enabled": true, "timestampMethod": "receiveTime", "label": "τ_ψ (N·m)", "showLine": true}
+      ],
+      "showLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "minYValue": "",
+      "maxYValue": ""
+    },
+    "Plot!vel_est": {
+      "title": "FxT Diferenciador: hat2 vs vel_world — mismo marco inercial (ẋ,ẏ,ż)",
+      "paths": [
+        {"value": "/hexa/vel_est.data[0]",   "enabled": true, "timestampMethod": "receiveTime", "label": "ẋ_est (m/s)",   "showLine": true},
+        {"value": "/hexa/vel_est.data[1]",   "enabled": true, "timestampMethod": "receiveTime", "label": "ẏ_est (m/s)",   "showLine": true},
+        {"value": "/hexa/vel_est.data[2]",   "enabled": true, "timestampMethod": "receiveTime", "label": "ż_est (m/s)",   "showLine": true},
+        {"value": "/hexa/vel_world.data[0]", "enabled": true, "timestampMethod": "receiveTime", "label": "ẋ_real (m/s)",  "showLine": true},
+        {"value": "/hexa/vel_world.data[1]", "enabled": true, "timestampMethod": "receiveTime", "label": "ẏ_real (m/s)",  "showLine": true},
+        {"value": "/hexa/vel_world.data[2]", "enabled": true, "timestampMethod": "receiveTime", "label": "ż_real (m/s)",  "showLine": true}
+      ],
+      "showLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "minYValue": "",
+      "maxYValue": ""
+    }
+  },
+  "globalVariables": {},
+  "layout": {
+    "first": {
+      "first": "3D!main",
+      "second": {
+        "first": "Plot!position",
+        "second": "Plot!euler",
+        "direction": "column",
+        "splitPercentage": 50
+      },
+      "direction": "row",
+      "splitPercentage": 32
+    },
+    "second": {
+      "first": {
+        "first": "Plot!motors",
+        "second": "Plot!omega",
+        "direction": "row",
+        "splitPercentage": 50
+      },
+      "second": {
+        "first": "Plot!control",
+        "second": "Plot!vel_est",
+        "direction": "row",
+        "splitPercentage": 50
+      },
+      "direction": "row",
+      "splitPercentage": 50
+    },
+    "direction": "column",
+    "splitPercentage": 60
+  }
+}
