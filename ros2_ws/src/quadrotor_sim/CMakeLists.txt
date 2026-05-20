@@ -83,7 +83,25 @@ target_compile_features(sf_controller PUBLIC cxx_std_17)
 ament_target_dependencies(sf_controller rclcpp std_msgs)
 target_link_libraries(sf_controller Eigen3::Eigen)
 
+# ── C++ sensor noise node (adds Gaussian noise to simulate real sensors) ─────
+add_executable(sensor_noise_node src/sensor_noise_node.cpp)
+target_include_directories(sensor_noise_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_features(sensor_noise_node PUBLIC cxx_std_17)
+ament_target_dependencies(sensor_noise_node rclcpp std_msgs)
+
+# ── C++ Kalman filter node (estimates pose + velocity from noisy measurements) ─
+add_executable(kalman_filter_node src/kalman_filter_node.cpp)
+target_include_directories(kalman_filter_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_features(kalman_filter_node PUBLIC cxx_std_17)
+ament_target_dependencies(kalman_filter_node rclcpp std_msgs geometry_msgs)
+target_link_libraries(kalman_filter_node Eigen3::Eigen)
+
 install(TARGETS dynamics_node kinematics_node lqr_controller nonlinear_pd_controller sf_controller
+        sensor_noise_node kalman_filter_node
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY include/
