@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<robot name="hexa_tilt">
+
+
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="-1.5708 0 0"/>
+      <geometry>
+        <mesh filename="package://hexa_tilt_sim/meshes/hexa_body.stl"
+              scale="1 1 1"/>
+      </geometry>
+      <material name="dark_grey">
+        <color rgba="0.3 0.3 0.3 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+</robot>

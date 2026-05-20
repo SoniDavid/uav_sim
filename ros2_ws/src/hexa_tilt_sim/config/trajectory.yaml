@@ -1,0 +1,13 @@
+# Hexacopter test trajectory — 1 m × 1 m square at z = 1.2 m
+# (square at 1.2 m altitude)
+trajectory:
+  - position: [0.0, 0.0, 1.2]
+    hold_time: 5.0
+  - position: [1.0, 0.0, 1.2]
+    hold_time: 5.0
+  - position: [1.0, 1.0, 1.2]
+    hold_time: 5.0
+  - position: [0.0, 1.0, 1.2]
+    hold_time: 5.0
+  - position: [0.0, 0.0, 1.2]
+    hold_time: 8.0

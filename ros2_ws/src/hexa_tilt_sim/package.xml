@@ -1,28 +1,27 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>quadrotor_sim</name>
-  <version>0.2.0</version>
-  <description>Quadrotor UAV mathematical simulator — IRS Tarea 3</description>
-  <maintainer email="losfansdepalomino@proton.me">student</maintainer>
+  <name>hexa_tilt_sim</name>
+  <version>0.1.0</version>
+  <description>
+    Tilted-rotor hexacopter simulation — Fixed-Time Differentiator + Feedback
+    Linearization PD controller, analogous to quadrotor_sim.
+    Based on FxTDiff_PD.pdf (FPVDrone S550 platform).
+  </description>
+  <maintainer email="losfansdepalomino@proton.me">SoniDavid</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <depend>rclcpp</depend>
+  <depend>rclpy</depend>
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>tf2_ros</depend>
-
-  <exec_depend>rclpy</exec_depend>
-  <exec_depend>python3-numpy</exec_depend>
+  <depend>eigen</depend>
   <exec_depend>robot_state_publisher</exec_depend>
-  <exec_depend>tf2_geometry_msgs</exec_depend>
-
-  <test_depend>ament_lint_auto</test_depend>
-  <test_depend>ament_lint_common</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

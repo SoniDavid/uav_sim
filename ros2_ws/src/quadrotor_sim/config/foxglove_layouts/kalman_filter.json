@@ -1,0 +1,120 @@
+{
+  "configById": {
+    "3D!main": {
+      "cameraState": {
+        "distance": 5,
+        "perspective": true,
+        "phi": 50,
+        "target": [0, 0, 1],
+        "targetOffset": [0, 0, 0],
+        "targetOrientation": [0, 0, 0, 1],
+        "thetaOffset": -30,
+        "fovy": 45,
+        "near": 0.001,
+        "far": 5000
+      },
+      "followTf": "base_link",
+      "followMode": "follow-none",
+      "scene": {},
+      "transforms": {},
+      "topics": {
+        "/uav/pose": {"visible": true},
+        "/uav/path": {"visible": true}
+      },
+      "layers": {},
+      "publish": {"type": "pose", "poseTopic": "/uav/cmd_pose"}
+    },
+    "Plot!position": {
+      "title": "Kalman Filter — Translational pose: x, y, z (m)",
+      "paths": [
+        {"value": "/uav/state.data[0]",       "enabled": true, "timestampMethod": "receiveTime", "label": "x true (m)",          "showLine": true},
+        {"value": "/uav/state.data[1]",       "enabled": true, "timestampMethod": "receiveTime", "label": "y true (m)",          "showLine": true},
+        {"value": "/uav/state.data[2]",       "enabled": true, "timestampMethod": "receiveTime", "label": "z true (m)",          "showLine": true},
+        {"value": "/uav/noisy_state.data[0]", "enabled": true, "timestampMethod": "receiveTime", "label": "x noisy sensor (m)",  "showLine": false},
+        {"value": "/uav/noisy_state.data[1]", "enabled": true, "timestampMethod": "receiveTime", "label": "y noisy sensor (m)",  "showLine": false},
+        {"value": "/uav/noisy_state.data[2]", "enabled": true, "timestampMethod": "receiveTime", "label": "z noisy sensor (m)",  "showLine": false},
+        {"value": "/uav/kf_state.data[0]",    "enabled": true, "timestampMethod": "receiveTime", "label": "x KF estimate (m)",   "showLine": true},
+        {"value": "/uav/kf_state.data[1]",    "enabled": true, "timestampMethod": "receiveTime", "label": "y KF estimate (m)",   "showLine": true},
+        {"value": "/uav/kf_state.data[2]",    "enabled": true, "timestampMethod": "receiveTime", "label": "z KF estimate (m)",   "showLine": true}
+      ],
+      "showLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "minYValue": "",
+      "maxYValue": ""
+    },
+    "Plot!euler": {
+      "title": "Kalman Filter — Rotational pose: roll (φ), pitch (θ), yaw (ψ) (rad)",
+      "paths": [
+        {"value": "/uav/euler.vector.x",      "enabled": true, "timestampMethod": "receiveTime", "label": "φ true (rad)",          "showLine": true},
+        {"value": "/uav/euler.vector.y",      "enabled": true, "timestampMethod": "receiveTime", "label": "θ true (rad)",          "showLine": true},
+        {"value": "/uav/euler.vector.z",      "enabled": true, "timestampMethod": "receiveTime", "label": "ψ true (rad)",          "showLine": true},
+        {"value": "/uav/noisy_state.data[3]", "enabled": true, "timestampMethod": "receiveTime", "label": "φ noisy sensor (rad)",  "showLine": false},
+        {"value": "/uav/noisy_state.data[4]", "enabled": true, "timestampMethod": "receiveTime", "label": "θ noisy sensor (rad)",  "showLine": false},
+        {"value": "/uav/noisy_state.data[5]", "enabled": true, "timestampMethod": "receiveTime", "label": "ψ noisy sensor (rad)",  "showLine": false},
+        {"value": "/uav/kf_euler.vector.x",   "enabled": true, "timestampMethod": "receiveTime", "label": "φ KF estimate (rad)",   "showLine": true},
+        {"value": "/uav/kf_euler.vector.y",   "enabled": true, "timestampMethod": "receiveTime", "label": "θ KF estimate (rad)",   "showLine": true},
+        {"value": "/uav/kf_euler.vector.z",   "enabled": true, "timestampMethod": "receiveTime", "label": "ψ KF estimate (rad)",   "showLine": true}
+      ],
+      "showLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "minYValue": "",
+      "maxYValue": ""
+    },
+    "Plot!vel_lin": {
+      "title": "Kalman Filter — Translational velocity: dx/dt, dy/dt, dz/dt (m/s)",
+      "paths": [
+        {"value": "/uav/state.data[3]",    "enabled": true, "timestampMethod": "receiveTime", "label": "dx/dt true (m/s)",        "showLine": true},
+        {"value": "/uav/state.data[4]",    "enabled": true, "timestampMethod": "receiveTime", "label": "dy/dt true (m/s)",        "showLine": true},
+        {"value": "/uav/state.data[5]",    "enabled": true, "timestampMethod": "receiveTime", "label": "dz/dt true (m/s)",        "showLine": true},
+        {"value": "/uav/kf_state.data[3]", "enabled": true, "timestampMethod": "receiveTime", "label": "dx/dt KF estimate (m/s)", "showLine": true},
+        {"value": "/uav/kf_state.data[4]", "enabled": true, "timestampMethod": "receiveTime", "label": "dy/dt KF estimate (m/s)", "showLine": true},
+        {"value": "/uav/kf_state.data[5]", "enabled": true, "timestampMethod": "receiveTime", "label": "dz/dt KF estimate (m/s)", "showLine": true}
+      ],
+      "showLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "minYValue": "",
+      "maxYValue": ""
+    },
+    "Plot!vel_ang": {
+      "title": "Kalman Filter — Angular velocity: p, q, r (rad/s)",
+      "paths": [
+        {"value": "/uav/state.data[9]",     "enabled": true, "timestampMethod": "receiveTime", "label": "p true (rad/s)",          "showLine": true},
+        {"value": "/uav/state.data[10]",    "enabled": true, "timestampMethod": "receiveTime", "label": "q true (rad/s)",          "showLine": true},
+        {"value": "/uav/state.data[11]",    "enabled": true, "timestampMethod": "receiveTime", "label": "r true (rad/s)",          "showLine": true},
+        {"value": "/uav/kf_state.data[9]",  "enabled": true, "timestampMethod": "receiveTime", "label": "p KF estimate (rad/s)",   "showLine": true},
+        {"value": "/uav/kf_state.data[10]", "enabled": true, "timestampMethod": "receiveTime", "label": "q KF estimate (rad/s)",   "showLine": true},
+        {"value": "/uav/kf_state.data[11]", "enabled": true, "timestampMethod": "receiveTime", "label": "r KF estimate (rad/s)",   "showLine": true}
+      ],
+      "showLegend": true,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "minYValue": "",
+      "maxYValue": ""
+    }
+  },
+  "globalVariables": {},
+  "layout": {
+    "first": "3D!main",
+    "second": {
+      "first": {
+        "first": "Plot!position",
+        "second": "Plot!euler",
+        "direction": "column",
+        "splitPercentage": 50
+      },
+      "second": {
+        "first": "Plot!vel_lin",
+        "second": "Plot!vel_ang",
+        "direction": "column",
+        "splitPercentage": 50
+      },
+      "direction": "row",
+      "splitPercentage": 50
+    },
+    "direction": "row",
+    "splitPercentage": 28
+  }
+}

@@ -18,9 +18,9 @@ constexpr double KQ = 5.4e-9;
 constexpr double TM        = 0.01;
 constexpr double OMEGA_MAX = 2640.0;
 
-constexpr double DT_SIM            = 0.001;
+constexpr double DT_SIM            = 0.01;
 constexpr double DT_PUB            = 0.02;
-constexpr int    SIM_STEPS_PER_PUB = 20;
+constexpr int    SIM_STEPS_PER_PUB = 2;
 
 constexpr double T_HOVER = MASS * G;
 constexpr double T_MAX   = 4.0 * KT * OMEGA_MAX * OMEGA_MAX;

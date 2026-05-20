@@ -1,0 +1,27 @@
+services:
+  ros-dev:
+    container_name: uav-sim-container
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    volumes:
+      - ..:/home/dev/ws:cached
+      - home_volume:/home/dev
+      - /tmp/.X11-unix:/tmp/.X11-unix # X11 Socket
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+    network_mode: host
+    command: sleep infinity
+    # NVIDIA GPU support
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  home_volume:
