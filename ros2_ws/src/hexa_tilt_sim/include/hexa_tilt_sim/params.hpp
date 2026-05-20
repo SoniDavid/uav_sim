@@ -24,7 +24,9 @@ constexpr double OMEGA_HOVER = 620.0;    // approx. hover per motor
 // Simulation and publish rates
 constexpr double DT_SIM    = 0.001;      // 1 kHz dynamics
 constexpr double DT_PUB    = 0.02;       // 50 Hz kinematics/viz
-constexpr double DT_CTRL   = 1.0/250.0;  // 250 Hz controller (matches hardware)
+constexpr double CTRL_FREQ = 250.0;     // Original hardware frequency
+// constexpr double CTRL_FREQ = 1000.0;    // Testing frequency
+constexpr double DT_CTRL   = 1.0/CTRL_FREQ; 
 
 // ── Motor allocation matrix M_φ (6×6, Eq. 10, scaled 1e-5) ────────────────────
 // Rows: [f_x, f_y, f_z, τ_φ, τ_θ, τ_ψ]

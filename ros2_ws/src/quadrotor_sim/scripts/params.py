@@ -24,9 +24,9 @@ OMEGA_MAX = 2640.0  # rad/s, maximum rotor speed
 OMEGA_MIN = 0.0     # rad/s
 
 # Simulation timing
-DT_SIM            = 0.001               # s, RK4 integration step (1 kHz)
+DT_SIM            = 0.01                # s, RK4 integration step (100 Hz)
 DT_PUB            = 0.02                # s, ROS2 publish period (50 Hz)
-SIM_STEPS_PER_PUB = int(DT_PUB / DT_SIM)  # 20 steps per publish
+SIM_STEPS_PER_PUB = int(DT_PUB / DT_SIM)  # 2 steps per publish
 
 # Hover equilibrium values
 T_HOVER     = MASS * G                        # 0.44145 N total thrust

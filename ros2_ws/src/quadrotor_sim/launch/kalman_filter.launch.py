@@ -104,6 +104,41 @@ def _dynamic_nodes(context, *args, **kwargs):
     return nodes
 
 
+def _kalman_nodes(context, *args, **kwargs):
+    tuning = LaunchConfiguration('kf_tuning').perform(context)
+    
+    # Default values (Manual override if provided)
+    q_pos = LaunchConfiguration('q_pos').perform(context)
+    q_vel = LaunchConfiguration('q_vel').perform(context)
+    r_pos = LaunchConfiguration('r_pos').perform(context)
+    r_ang = LaunchConfiguration('r_ang').perform(context)
+
+    # Tuning Profiles
+    if tuning == 'sharp':
+        # Optimized for MIMO: Low lag, allows some noise
+        q_pos, q_vel = '1e-4', '1e-5'
+        r_pos, r_ang = '0.0025', '0.0001'
+    elif tuning == 'smooth':
+        # Optimized for Decoupled SF: Heavy smoothing, accepts some lag
+        q_pos, q_vel = '1e-7', '1e-6'
+        r_pos, r_ang = '0.05', '0.01'
+    
+    return [
+        Node(
+            package='quadrotor_sim',
+            executable='kalman_filter_node',
+            name='kalman_filter',
+            output='screen',
+            parameters=[{
+                'q_pos': float(q_pos),
+                'q_vel': float(q_vel),
+                'r_pos': float(r_pos),
+                'r_ang': float(r_ang),
+            }],
+        )
+    ]
+
+
 def generate_launch_description():
     pkg = get_package_share_directory('quadrotor_sim')
     default_traj = os.path.join(pkg, 'config', 'trajectory.yaml')
@@ -111,7 +146,7 @@ def generate_launch_description():
     # ── Simulation args ────────────────────────────────────────────────────────
     args_sim = [
         DeclareLaunchArgument('controller',      default_value='sf_controller',
-                              description="'sf_controller' | 'nonlinear_pd_controller' | 'lqr_controller'"),
+                              description="'sf_controller' | 'sf_mimo_controller' | 'nonlinear_pd_controller' | 'lqr_controller'"),
         DeclareLaunchArgument('traj_type',       default_value='none',
                               description="'none' | 'waypoints' | 'circle' | 'lemniscate' | 'helix'"),
         DeclareLaunchArgument('ref_x',           default_value='0.0',  description='Setpoint / centre x (m)'),
@@ -138,14 +173,16 @@ def generate_launch_description():
 
     # ── Kalman filter args ─────────────────────────────────────────────────────
     args_kf = [
-        DeclareLaunchArgument('q_pos', default_value='0.0001',
-                              description='KF process noise — position/angle states'),
-        DeclareLaunchArgument('q_vel', default_value='0.00001',
-                              description='KF process noise — velocity/rate states'),
-        DeclareLaunchArgument('r_pos', default_value='0.0025',
-                              description='KF measurement noise — position (m^2) [= sigma_pos^2]'),
-        DeclareLaunchArgument('r_ang', default_value='0.0001',
-                              description='KF measurement noise — angles (rad^2) [= sigma_ang^2]'),
+        DeclareLaunchArgument('kf_tuning', default_value='none',
+                              description="'sharp' (MIMO) | 'smooth' (Decoupled) | 'none' (manual)"),
+        DeclareLaunchArgument('q_pos', default_value='0.00001',
+                              description='Manual KF process noise — position/angle states'),
+        DeclareLaunchArgument('q_vel', default_value='0.000001',
+                              description='Manual KF process noise — velocity/rate states'),
+        DeclareLaunchArgument('r_pos', default_value='0.05',
+                              description='Manual KF measurement noise — position (m^2)'),
+        DeclareLaunchArgument('r_ang', default_value='0.5',
+                              description='Manual KF measurement noise — angles (rad^2)'),
     ]
 
     # ── Nodes ──────────────────────────────────────────────────────────────────
@@ -168,6 +205,9 @@ def generate_launch_description():
         executable=LaunchConfiguration('controller'),
         name='quadrotor_controller',
         output='screen',
+        remappings=[
+            ('/uav/state', '/uav/kf_state')
+        ],
     )
 
     node_sensor_noise = Node(
@@ -179,19 +219,6 @@ def generate_launch_description():
             'sigma_pos': LaunchConfiguration('sigma_pos'),
             'sigma_ang': LaunchConfiguration('sigma_ang'),
             'seed':      LaunchConfiguration('noise_seed'),
-        }],
-    )
-
-    node_kalman = Node(
-        package='quadrotor_sim',
-        executable='kalman_filter_node',
-        name='kalman_filter',
-        output='screen',
-        parameters=[{
-            'q_pos': LaunchConfiguration('q_pos'),
-            'q_vel': LaunchConfiguration('q_vel'),
-            'r_pos': LaunchConfiguration('r_pos'),
-            'r_ang': LaunchConfiguration('r_ang'),
         }],
     )
 
@@ -212,8 +239,8 @@ def generate_launch_description():
             node_kinematics,
             node_controller,
             node_sensor_noise,
-            node_kalman,
-            node_foxglove,
+            # node_foxglove,
             OpaqueFunction(function=_dynamic_nodes),
+            OpaqueFunction(function=_kalman_nodes),
         ]
     )

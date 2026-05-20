@@ -10,10 +10,10 @@
 
 using namespace qsim;
 
-class SFControllerNode : public rclcpp::Node
+class SFMIMOControllerNode : public rclcpp::Node
 {
 public:
-    SFControllerNode() : Node("sf_controller"), state_received_(false), log_cycle_(0)
+    SFMIMOControllerNode() : Node("sf_mimo_controller"), state_received_(false), log_cycle_(0)
     {
         ref12_.fill(0.0);
         ref12_[2] = 1.0;  // default: hover at 1 m
@@ -40,9 +40,9 @@ public:
 
         timer_ = create_wall_timer(
             std::chrono::microseconds(static_cast<long>(DT_PUB * 1e6)),
-            std::bind(&SFControllerNode::tick, this));
+            std::bind(&SFMIMOControllerNode::tick, this));
 
-        RCLCPP_INFO(get_logger(), "State feedback controller node started at %.0f Hz.", 1.0 / DT_PUB);
+        RCLCPP_INFO(get_logger(), "MIMO state feedback controller node started at %.0f Hz.", 1.0 / DT_PUB);
     }
 
 private:
@@ -56,7 +56,7 @@ private:
             ref12   = ref12_;
         }
 
-        const auto u = compute_sf_decoupled_control(state12.data(), ref12.data());
+        const auto u = compute_sf_mimo_control(state12.data(), ref12.data());
 
         std_msgs::msg::Float64MultiArray msg;
         msg.data = {u[0], u[1], u[2], u[3]};
@@ -71,9 +71,9 @@ private:
             t_history_.clear();
             if (T_avg > T_MAX * 0.95) {
                 RCLCPP_WARN(get_logger(),
-                    "[sf] Thrust near saturation: avg=%.3f N (T_MAX=%.3f N)", T_avg, T_MAX);
+                    "[sf_mimo] Thrust near saturation: avg=%.3f N (T_MAX=%.3f N)", T_avg, T_MAX);
             } else {
-                RCLCPP_INFO(get_logger(), "[sf] Thrust avg=%.3f N", T_avg);
+                RCLCPP_INFO(get_logger(), "[sf_mimo] Thrust avg=%.3f N", T_avg);
             }
         }
     }
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
 {
     rclcpp::init(argc, argv);
     rclcpp::executors::MultiThreadedExecutor exec;
-    auto node = std::make_shared<SFControllerNode>();
+    auto node = std::make_shared<SFMIMOControllerNode>();
     exec.add_node(node);
     exec.spin();
     rclcpp::shutdown();

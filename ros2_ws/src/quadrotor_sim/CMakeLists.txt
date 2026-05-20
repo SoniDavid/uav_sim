@@ -100,7 +100,15 @@ target_compile_features(kalman_filter_node PUBLIC cxx_std_17)
 ament_target_dependencies(kalman_filter_node rclcpp std_msgs geometry_msgs)
 target_link_libraries(kalman_filter_node Eigen3::Eigen)
 
-install(TARGETS dynamics_node kinematics_node lqr_controller nonlinear_pd_controller sf_controller
+add_executable(sf_mimo_controller src/sf_mimo_controller.cpp)
+target_include_directories(sf_mimo_controller PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_features(sf_mimo_controller PUBLIC cxx_std_17)
+ament_target_dependencies(sf_mimo_controller rclcpp std_msgs)
+target_link_libraries(sf_mimo_controller Eigen3::Eigen)
+
+install(TARGETS dynamics_node kinematics_node lqr_controller nonlinear_pd_controller sf_controller sf_mimo_controller
         sensor_noise_node kalman_filter_node
   DESTINATION lib/${PROJECT_NAME})
 
