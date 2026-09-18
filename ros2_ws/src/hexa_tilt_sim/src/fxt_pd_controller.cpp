@@ -120,10 +120,10 @@ private:
         const double vel_err_xy = std::hypot(diff_.hat2[0] - chi_dot_actual[0],
                                              diff_.hat2[1] - chi_dot_actual[1]);
 
-        //  Saturation check: warn when commanded forces exceed actuator limits 
-        // Max fz ≈ 6 × 0.74e-5 × 1000² = 44.4 N; max |fx|,|fy| ≈ 4.6 N each
-        constexpr double FZ_MAX   =  6.0 * 0.74e-5 * OMEGA_MAX * OMEGA_MAX;
-        constexpr double FXY_MAX  =  2.0 * 0.23e-5 * OMEGA_MAX * OMEGA_MAX; // 2 motors contribute
+        //  Saturation check: warn when commanded forces exceed actuator limits.
+        //  Derived from M_PHI so they track the allocation automatically (no drift).
+        constexpr double FZ_MAX   =  6.0 * M_PHI[2][0] * OMEGA_MAX * OMEGA_MAX;
+        constexpr double FXY_MAX  =  2.0 * M_PHI[0][2] * OMEGA_MAX * OMEGA_MAX; // positive fx entry; 2 motors contribute
         const bool sat_z  = std::abs(F_des[2]) > FZ_MAX;
         const bool sat_xy = std::abs(F_des[0]) > FXY_MAX || std::abs(F_des[1]) > FXY_MAX;
 

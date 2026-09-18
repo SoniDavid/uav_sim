@@ -1,0 +1,45 @@
+# ros_gz_bridge (parameter_bridge) config for the single hexa_s550 vehicle.
+#
+# Model is spawned with entity name "hexa". Topic names below were CONFIRMED with
+# `gz topic -l` on Harmonic 8.14: the MulticopterMotorModel command topic is
+# model-name-scoped as /hexa/command/motor_speed (NOT /model/hexa/...), odometry is
+# /model/hexa/odometry, and the sensors publish on global /imu /air_pressure /navsat.
+
+# --- Actuation: ROS controller -> Gazebo motors ---
+- ros_topic_name: "/hexa/command/motor_speed"
+  gz_topic_name: "/hexa/command/motor_speed"
+  ros_type_name: "actuator_msgs/msg/Actuators"
+  gz_type_name: "gz.msgs.Actuators"
+  direction: ROS_TO_GZ
+
+# --- State feedback: Gazebo -> ROS ---
+- ros_topic_name: "/model/hexa/odometry"
+  gz_topic_name: "/model/hexa/odometry"
+  ros_type_name: "nav_msgs/msg/Odometry"
+  gz_type_name: "gz.msgs.Odometry"
+  direction: GZ_TO_ROS
+
+# --- Clock (so ROS can use sim time if desired) ---
+- ros_topic_name: "/clock"
+  gz_topic_name: "/clock"
+  ros_type_name: "rosgraph_msgs/msg/Clock"
+  gz_type_name: "gz.msgs.Clock"
+  direction: GZ_TO_ROS
+
+# --- Sensors (your emulation goal). Confirmed global topic names on Harmonic 8.14.
+#     Enabled by default; remap ros_topic_name under /hexa/ for tidiness. ---
+- ros_topic_name: "/hexa/imu"
+  gz_topic_name: "/imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: GZ_TO_ROS
+- ros_topic_name: "/hexa/air_pressure"
+  gz_topic_name: "/air_pressure"
+  ros_type_name: "sensor_msgs/msg/FluidPressure"
+  gz_type_name: "gz.msgs.FluidPressure"
+  direction: GZ_TO_ROS
+- ros_topic_name: "/hexa/navsat"
+  gz_topic_name: "/navsat"
+  ros_type_name: "sensor_msgs/msg/NavSatFix"
+  gz_type_name: "gz.msgs.NavSat"
+  direction: GZ_TO_ROS
