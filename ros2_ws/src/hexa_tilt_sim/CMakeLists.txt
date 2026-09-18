@@ -15,6 +15,7 @@ find_package(nav_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(actuator_msgs REQUIRED)  # Gazebo motor-speed adapter
 
 #  Python library (hexa_tilt_sim_scripts) 
 ament_python_install_package(hexa_tilt_sim_scripts PACKAGE_DIR scripts)
@@ -73,14 +74,30 @@ target_include_directories(simple_pd_controller PUBLIC
 target_compile_features(simple_pd_controller PUBLIC cxx_std_17)
 ament_target_dependencies(simple_pd_controller rclcpp std_msgs)
 
+#  C++ Gazebo bridge adapters
+add_executable(wrench_to_actuators src/wrench_to_actuators.cpp)
+target_include_directories(wrench_to_actuators PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_features(wrench_to_actuators PUBLIC cxx_std_17)
+ament_target_dependencies(wrench_to_actuators rclcpp std_msgs actuator_msgs)
+
+add_executable(odom_to_state src/odom_to_state.cpp)
+target_include_directories(odom_to_state PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_features(odom_to_state PUBLIC cxx_std_17)
+ament_target_dependencies(odom_to_state rclcpp std_msgs nav_msgs)
+
 install(TARGETS dynamics_node kinematics_node fxt_pd_controller simple_pd_controller
+                wrench_to_actuators odom_to_state
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY include/
   DESTINATION include)
 
-#  Shared data 
-install(DIRECTORY launch config meshes urdf
+#  Shared data
+install(DIRECTORY launch config meshes urdf sdf worlds
   DESTINATION share/${PROJECT_NAME})
 install(FILES resource/hexa_tilt_sim
   DESTINATION share/ament_index/resource_index/packages)
