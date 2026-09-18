@@ -4,8 +4,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    restart: unless-stopped
     volumes:
       - ..:/home/dev/ws:cached
+      - home_volume:/home/dev
       - /tmp/.X11-unix:/tmp/.X11-unix # X11 Socket
     environment:
       - DISPLAY=${DISPLAY}
@@ -20,3 +22,6 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+
+volumes:
+  home_volume:

@@ -100,20 +100,27 @@ private:
         double chi_dot_actual[6];
         world_velocity(chi_meas, v_body, chi_dot_actual);
 
-        // Initialize differentiator with actual velocity so hat2 starts accurate.
-        // This eliminates the startup transient where hat2=0 but the drone is moving.
+        // Initialize differentiator and filter with actual velocity.
         if (!initialized_) {
             diff_.reset(chi_meas, chi_dot_actual);
+            for (int i = 0; i < 6; ++i) vel_filtered_[i] = chi_dot_actual[i];
             initialized_ = true;
         }
 
         diff_.update(chi_meas, DT_CTRL);
 
+        // Apply Low-Pass Filter (LPF) to hat2 (velocity estimate)
+        // Alpha = dt / (RC + dt). For ~15 Hz cutoff at 250 Hz, alpha ≈ 0.25
+        constexpr double ALPHA = 0.25; 
+        for (int i = 0; i < 6; ++i) {
+            vel_filtered_[i] = ALPHA * diff_.hat2[i] + (1.0 - ALPHA) * vel_filtered_[i];
+        }
+
         const double chi_d[6]     = {r[0], r[1], r[2], r[3], r[4], r[5]};
         const double chi_dot_d[6] = {r[6], r[7], r[8], r[9], r[10], r[11]};
 
         auto F_des = compute_fxt_pd_control(
-            diff_.hat1, diff_.hat2, v_body, chi_d, chi_dot_d);
+            diff_.hat1, vel_filtered_, v_body, chi_d, chi_dot_d);
 
         //  Diagnostic: check how close hat2 is to actual velocity 
         // If these diverge in Foxglove, the differentiator lag is the instability source.
@@ -164,6 +171,7 @@ private:
     std::array<double, 12> ref_;
     std::mutex mutex_;
     FxtDifferentiator diff_;
+    double vel_filtered_[6]{};
     bool initialized_;
     int  log_cycle_;
 

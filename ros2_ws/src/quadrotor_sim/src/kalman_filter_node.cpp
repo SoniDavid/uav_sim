@@ -47,7 +47,7 @@ public:
         declare_parameter("r_pos", 0.0025);   // sigma_pos=0.05 → 0.05²
         declare_parameter("r_ang", 0.0001);   // sigma_ang=0.01 → 0.01²
 
-        const double dt    = DT_PUB;   // 0.02 s — same rate as controller
+        const double dt    = DT_PUB;   // 0.02 s — same rate as controller and sensor noise
         const double q_pos = get_parameter("q_pos").as_double();
         const double q_vel = get_parameter("q_vel").as_double();
         const double r_pos = get_parameter("r_pos").as_double();
@@ -130,14 +130,31 @@ private:
         const auto & x = kf_.step(y, Bu);
         const auto now = get_clock()->now();
 
+        // Convert estimated Euler rates (φ̇, θ̇, ψ̇) back to body rates (p, q, r)
+        // to match the /uav/state convention expected by the controllers.
+        const double phi = x(6);
+        const double theta = x(8);
+        const double phi_dot = x(7);
+        const double theta_dot = x(9);
+        const double psi_dot = x(11);
+
+        const double sp = std::sin(phi);
+        const double cp = std::cos(phi);
+        const double st = std::sin(theta);
+        const double ct = std::cos(theta);
+
+        const double p_body = phi_dot - st * psi_dot;
+        const double q_body = cp * theta_dot + sp * ct * psi_dot;
+        const double r_body = -sp * theta_dot + cp * ct * psi_dot;
+
         // Publish estimated state in /uav/state convention:
-        // [x̂,ŷ,ẑ, ẋ̂,ẏ̂,ż̂, φ̂,θ̂,ψ̂, φ̇̂,θ̇̂,ψ̇̂]
+        // [x̂,ŷ,ẑ, ẋ̂,ẏ̂,ż̂, φ̂,θ̂,ψ̂, p̂,q̂,r̂]
         std_msgs::msg::Float64MultiArray kf_msg;
         kf_msg.data = {
             x(0), x(2), x(4),    // position  x̂, ŷ, ẑ
             x(1), x(3), x(5),    // velocity  ẋ̂, ẏ̂, ż̂
             x(6), x(8), x(10),   // angles    φ̂, θ̂, ψ̂
-            x(7), x(9), x(11)    // ang rates φ̇̂, θ̇̂, ψ̇̂
+            p_body, q_body, r_body // body rates p̂, q̂, r̂
         };
         pub_kf_state_->publish(kf_msg);
 

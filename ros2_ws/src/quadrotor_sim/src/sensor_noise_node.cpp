@@ -1,6 +1,12 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/float64_multi_array.hpp>
 #include <random>
+#include <mutex>
+#include <array>
+
+#include "quadrotor_sim/params.hpp"
+
+using namespace qsim;
 
 // Simulates a noisy sensor layer on top of the perfect simulation state.
 // Enforces partial observability: only position and angle measurements are
@@ -25,7 +31,7 @@
 class SensorNoiseNode : public rclcpp::Node
 {
 public:
-    SensorNoiseNode() : Node("sensor_noise_node")
+    SensorNoiseNode() : Node("sensor_noise_node"), state_received_(false)
     {
         declare_parameter("sigma_pos", 0.05);
         declare_parameter("sigma_ang", 0.01);
@@ -41,7 +47,16 @@ public:
 
         sub_ = create_subscription<std_msgs::msg::Float64MultiArray>(
             "/uav/state", 10,
-            [this](std_msgs::msg::Float64MultiArray::SharedPtr msg) { cb(msg); });
+            [this](std_msgs::msg::Float64MultiArray::SharedPtr msg) { 
+                if (msg->data.size() < 12) return;
+                std::lock_guard<std::mutex> lk(mutex_);
+                for (int i = 0; i < 12; ++i) state12_[i] = msg->data[i];
+                state_received_ = true;
+            });
+
+        timer_ = create_wall_timer(
+            std::chrono::microseconds(static_cast<long>(DT_PUB * 1e6)),
+            std::bind(&SensorNoiseNode::tick, this));
 
         // Allow live parameter changes (e.g. ros2 param set)
         param_cb_ = add_on_set_parameters_callback(
@@ -54,15 +69,19 @@ public:
             });
 
         RCLCPP_INFO(get_logger(),
-            "Sensor noise node: sigma_pos=%.4f m  sigma_ang=%.4f rad  seed=%d",
-            sigma_pos_, sigma_ang_, seed);
+            "Sensor noise node started at %.0f Hz: sigma_pos=%.4f m  sigma_ang=%.4f rad  seed=%d",
+            1.0 / DT_PUB, sigma_pos_, sigma_ang_, seed);
     }
 
 private:
-    void cb(const std_msgs::msg::Float64MultiArray::SharedPtr msg)
+    void tick()
     {
-        if (msg->data.size() < 12) return;
-        const auto & d = msg->data;
+        std::array<double, 12> d;
+        {
+            std::lock_guard<std::mutex> lk(mutex_);
+            if (!state_received_) return;
+            d = state12_;
+        }
 
         std_msgs::msg::Float64MultiArray out;
         out.data = {
@@ -79,9 +98,14 @@ private:
     double sigma_pos_, sigma_ang_;
     std::mt19937 rng_;
     std::normal_distribution<double> dist_{0.0, 1.0};
+    
+    std::array<double, 12> state12_;
+    std::mutex mutex_;
+    bool state_received_;
 
     rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr  pub_;
     rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr sub_;
+    rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr param_cb_;
 };
 

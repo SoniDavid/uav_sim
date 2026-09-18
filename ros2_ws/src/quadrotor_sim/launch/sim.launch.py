@@ -98,7 +98,7 @@ def generate_launch_description():
     arg_ref_z        = DeclareLaunchArgument('ref_z',       default_value='1.0',  description='Target z (m) / orbit height')
     arg_ref_max_vel  = DeclareLaunchArgument('ref_max_vel', default_value='0.5',  description='Max reference velocity (m/s)')
     arg_controller   = DeclareLaunchArgument('controller',  default_value='sf_controller',
-                                             description="'sf_controller' | 'nonlinear_pd_controller' | 'lqr_controller'")
+                                             description="'sf_controller' | 'sf_mimo_controller' | 'nonlinear_pd_controller' | 'lqr_controller'")
     arg_traj_file    = DeclareLaunchArgument('trajectory_file', default_value=default_traj,
                                              description='Path to YAML trajectory file (traj_type=waypoints)')
     arg_loop         = DeclareLaunchArgument('loop',        default_value='false',
